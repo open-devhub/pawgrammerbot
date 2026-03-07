@@ -19,7 +19,7 @@ export default {
         messages: [
           {
             role: "user",
-            content: `Answer the following question concisely **only if it is related to tech, coding, development, or programming**. If it is not, simply reply: "I cannot provide an answer for this question because it is not related to tech, coding, development, or programming."\n${question}`,
+            content: `Answer the following question **only if it is a safe, appropriate question**.\n${question}`,
           },
         ],
         model,
