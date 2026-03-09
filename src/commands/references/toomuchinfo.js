@@ -1,10 +1,10 @@
 export default {
-  name: 'toomuchinfo',
-  description: 'Post contains irrelevant information',
+  name: "toomuchinfo",
+  description: "Post contains irrelevant information",
   callback: async (client, message) => {
     try {
       return message.channel.send(
-        'ℹ️ **Information Overload:** Please stick to the details relevant to the technical issue at hand.',
+        `ℹ️ **Too Much Information:** Try to remove unrelated details and focus on the parts of your problem that are directly relevant.`,
       );
     } catch (err) {
       console.error(err);

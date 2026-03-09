@@ -1,11 +1,12 @@
 export default {
-  name: 'xyproblem',
-  description: 'The XY Problem',
-  aliases: ['xy'],
+  name: "xyproblem",
+  description: "The XY Problem",
+  aliases: ["xy"],
   callback: async (client, message) => {
     try {
       return message.channel.send(
-        '🎯 **XY Problem:** You are asking about your "solution" rather than the actual problem. What are you trying to *achieve*?\nhttps://xyproblem.info/',
+        `🧩 **The XY Problem:** You're asking about a solution instead of the actual problem you're trying to solve. Try explaining the **original goal** so people can suggest better solutions.
+https://xyproblem.info/`,
       );
     } catch (err) {
       console.error(err);

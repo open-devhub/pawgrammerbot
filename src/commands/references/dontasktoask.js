@@ -5,10 +5,8 @@ export default {
   callback: async (client, message, args) => {
     try {
       return message.channel.send(
-        "❌ Don’t ask to ask.\n" +
-          "No “can someone help?” or asking for DMs.\n" +
-          "Just ask your full question with context.\n" +
-          "https://dontasktoask.com/",
+        `❌ **Don't Ask to Ask:** Instead of asking if you can ask a question, just ask it directly. This saves time and helps people immediately understand what you need help with.
+https://dontasktoask.com/`,
       );
     } catch (err) {}
   },

@@ -1,11 +1,12 @@
 export default {
-  name: 'imageofcode',
-  description: 'Asking for text instead of code images',
-  aliases: ['pictureofcode', 'imgofcode'],
+  name: "imageofcode",
+  description: "Asking for text instead of code images",
+  aliases: ["pictureofcode", "imgofcode"],
   callback: async (client, message) => {
     try {
       return message.channel.send(
-        "💻 **Don't post images of code:** Please paste your code as text using code blocks ( \` \` \` ) so we can copy and test it.\nhttps://idownvotedbecau.se/imageofcode/",
+        `❌ **Don't Post Images of Code:** Code should be shared as text inside code blocks so others can read, copy, and test it. Images of code are difficult to work with.
+https://idownvotedbecau.se/imageofcode/`,
       );
     } catch (err) {
       console.error(err);

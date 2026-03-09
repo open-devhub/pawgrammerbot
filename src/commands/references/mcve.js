@@ -1,11 +1,12 @@
 export default {
-  name: 'mcve',
-  description: 'Minimal Complete Verifiable Example',
-  aliases: ['mvce'],
+  name: "mcve",
+  description: "Minimal Complete Verifiable Example",
+  aliases: ["mvce"],
   callback: async (client, message) => {
     try {
       return message.channel.send(
-        '📦 **MCVE:** Please provide a **M**inimal, **C**omplete, and **V**erifiable **E**xample.\nhttps://stackoverflow.com/help/minimal-reproducible-example',
+        `🧪 **Provide an MCVE:** When asking for help, try to share a **Minimal, Complete, Verifiable Example** of your issue. This means the smallest amount of code needed to reproduce the problem.
+https://stackoverflow.com/help/minimal-reproducible-example`,
       );
     } catch (err) {
       console.error(err);

@@ -1,10 +1,10 @@
 export default {
-  name: 'sask',
-  description: 'Short Ask - asking to ask',
+  name: "sask",
+  description: "Short Ask - asking to ask",
   callback: async (client, message) => {
     try {
       return message.channel.send(
-        "❓ **Don't ask to ask:** Just post your question. If someone knows the answer, they will reply.\nhttps://dontasktoask.com/",
+        `❓ **Short Ask (SASK):** Instead of asking if someone knows about a topic, briefly describe your actual problem right away so people can help immediately.`,
       );
     } catch (err) {
       console.error(err);
