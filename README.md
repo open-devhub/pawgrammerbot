@@ -1,33 +1,11 @@
 # 🐾 Pawgrammer Bot
 
-Pawgrammer is DevHub’s **documentation, AI, references, and news bot**.  
+Pawgrammer is DevHub’s **documentation, AI, references, and news bot**.
 It helps contributors stay informed, learn faster, and access curated resources, all through simple **prefix commands**.
-
-## ✨ Features
-
-- **AI-powered Q&A** → `++askai` (alias: `++ai`)  
-  Get quick answers, explanations, or brainstorming help from an integrated AI assistant.
-
-- **Developer Articles** → `++articles` (alias: `++devto`)  
-  Fetch fresh posts from [dev.to](https://dev.to) to stay up-to-date with developer insights.
-
-- **MDN Docs** → `++mdn` (alias: `++mozilla`)  
-  Instantly retrieve authoritative documentation from [MDN Web Docs](https://developer.mozilla.org).
-
-- **Tech News** → `++news` (alias: `++devnews`)  
-  Pull the latest headlines from [NewsAPI](https://newsapi.org) to keep the community informed.
-
-- **Community References**
-  - `++dontasktoask` (alias: `++ask`) → [Don’t Ask to Ask](https://dontasktoask.com)
-  - `++nohello` → [No Hello](https://nohello.net)
-  - `++xyproblem` → [XY Problem](https://xyproblem.info/)
-  - `++org` → [DevHub Organizaation](https://github.com/open-devhub/)
-  - `++rules` → DevHub’s community rules
-  - `++tos` → Discord’s Terms of Service
 
 ## 📖 Usage
 
-All commands are **prefix-only**.  
+All commands are **prefix-only**.
 Use either `++[cmd]` or `?[cmd]` (without brackets).
 
 ### Examples
@@ -43,28 +21,57 @@ Use either `++[cmd]` or `?[cmd]` (without brackets).
 
 ## 🛠️ Commands Overview
 
-| Command        | Alias       | Prefix Example   | Description                               |
-| -------------- | ----------- | ---------------- | ----------------------------------------- |
-| `askai`        | `ai`        | `++ai [query]`   | Ask the AI anything—technical or general. |
-| `articles`     | `devto`     | `++articles`     | Fetch dev.to articles by topic.           |
-| `mdn`          | `docs`      | `++mdn [query]`  | Search MDN documentation.                 |
-| `news`         | `headlines` | `++news`         | Get latest developer/tech news.           |
-| `dontasktoask` | `ask`       | `++dontasktoask` | Show the “Don’t Ask to Ask” reference.    |
-| `nohello`      | `hello`     | `++nohello`      | Show the “No Hello” reference.            |
-| `xyproblem`    | `xyp`       | `++xyproblem`    | Show the "XY Problem” reference.          |
-| `github`       | `org`       | `++github`       | Show the GitHub organization link         |
-| `rules`        | —           | `++rules`        | Display DevHub’s community rules.         |
-| `tos`          | terms       | `++tos`          | Display Discord’s Terms of Service.       |
-
-## 🗺️ Roadmap
-
-Pawgrammer is evolving to cover more documentation and references. Planned additions include:
-
-- **Expanded Documentation Sources**
-  - Add support for [discord.js](https://discord.js.org) docs (`++djs`) and add more language/framework docs (e.g., Python, Rust, Go)
-
-- **News & Updates**
-  - Filtered feeds for open-source, security, and developer tooling
+| Command         | Description                                            |
+| --------------- | ------------------------------------------------------ |
+| askai           | Ask llama-3.3-70b-versatile Ai Model                   |
+| articles        | Latest developer news headlines                        |
+| mdn             | Search MDN Web Docs                                    |
+| wiki            | Search Wikipedia                                       |
+| repo            | Get information about a GitHub repository              |
+| user            | Get information about a GitHub user                    |
+| ping            | Pong!                                                  |
+| news            | Latest developer/tech news headlines                   |
+| askbetter       | Guidelines on how to ask a quality question            |
+| dontasktoask    | dontasktoask.com                                       |
+| github          | GitHub organization link                               |
+| imageofanerror  | Asking for text instead of error images                |
+| imageofcode     | Asking for text instead of code images                 |
+| itsnotworking   | Asking for more detail than "it is not working"        |
+| mcve            | Minimal Complete Verifiable Example                    |
+| noattempt       | User has shown no attempt at solving the problem       |
+| nocode          | User provided no code                                  |
+| nodebugging     | User has not attempted to debug                        |
+| noerror         | User did not provide the error message                 |
+| nohello         | Dont just say hello, ask the question                  |
+| noresearch      | User has not searched for the answer                   |
+| rules           | Sends link to rule channel                             |
+| sask            | Short Ask - asking to ask                              |
+| tldr            | Too long, didn't read (requesting summary)             |
+| toomuchcode     | User posted an entire project                          |
+| toomuchinfo     | Post contains irrelevant information                   |
+| tos             | Discord Terms of Service                               |
+| tryit           | Try it and see / TIAS                                  |
+| unclearquestion | The question makes no sense                            |
+| xyproblem       | The XY Problem                                         |
+| backseat        | Rule against unsolicited advice or "backseat" coding   |
+| changesubjects  | Rule against changing the subject mid-help             |
+| chatgpt         | Policy on AI-generated code (ChatGPT, Claude, etc.)    |
+| cheat           | Rule against asking for help with cheating             |
+| crypto          | Policy on crypto, NFT, and blockchain discussion       |
+| dm              | Rule against asking for DMs for help                   |
+| english         | Request to use English for technical support           |
+| exams           | Rule against help with active exams/tests              |
+| flame           | Rule against flaming or toxicity                       |
+| freework        | Rule against asking people to code for you for free    |
+| hacks           | Rule against discussing hacking or unauthorized access |
+| image           | General rule on image usage in chat                    |
+| moveon          | Request to end a toxic or circular argument            |
+| nickpolicy      | Rules regarding nicknames (no pings/offensive content) |
+| noping          | Rule against unnecessarily pinging staff or users      |
+| scraping        | Policy on web scraping and automation                  |
+| selfbot         | Strict rule against self-bots                          |
+| spoon           | Rule against "spoon-feeding" / asking to be spoon-fed  |
+| voice           | Rules for voice channel behavior                       |
 
 ## 🐾 Philosophy
 
@@ -73,3 +80,8 @@ Pawgrammer is designed to:
 - Empower contributors with **fast, reliable knowledge**.
 - Encourage **community best practices**.
 - Keep DevHub’s spaces **welcoming, informed, and fun**.
+
+## 📄 License
+
+Pawgrammer Bot is licensed under DSAL v1.0
+See license in [LICENSE](./LICENSE)
