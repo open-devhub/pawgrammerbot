@@ -2,7 +2,7 @@ import "dotenv/config";
 import { Groq } from "groq-sdk";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-const model = "llama-3.3-70b-versatile";
+const model = "openai/gpt-oss-120b";
 const CONTEXT_TTL_MS = 15 * 60 * 1000;
 const MAX_CONTEXT_MESSAGES = 5;
 const USER_CONTEXT = new Map();
