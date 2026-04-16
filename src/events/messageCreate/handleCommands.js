@@ -68,7 +68,7 @@ export default async (client, message) => {
 
     commandObject.callback(client, message, args);
 
-    const defaultReaction = "👀";
+    const defaultReaction = "🐾";
 
     let emoji;
     if (typeof commandObject.react === "string") {
