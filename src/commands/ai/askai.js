@@ -73,25 +73,24 @@ export default {
 };
 
 async function buildConversation(message, question) {
-  const conversation = [
-    {
-      role: "user",
-      content: `Answer the following question **only if it is a safe, appropriate question**.\n${question}`,
-    },
-  ];
+  const conversation = [];
 
   const existing = USER_CONTEXT.get(message.author.id);
   if (existing && existing.expiresAt > Date.now()) {
-    conversation.unshift(...existing.messages);
+    conversation.push(...existing.messages);
   } else {
     USER_CONTEXT.delete(message.author.id);
   }
 
   const replyContext = await getReplyContext(message);
   if (replyContext) {
-    conversation.unshift(replyContext);
+    conversation.push(replyContext);
   }
 
+  conversation.push({
+    role: "user",
+    content: `Answer the following question **only if it is a safe, appropriate question**.\n${question}`,
+  });
   return conversation;
 }
 
