@@ -1,6 +1,7 @@
 import path, { join } from "path";
 import { fileURLToPath } from "url";
 import getAllFiles from "../../utils/getAllFiles.js";
+import getConfig from "../../utils/getConfig.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -17,7 +18,8 @@ export default async (client, message) => {
   }
 
   try {
-    const prefixes = ["?", "++"];
+    const config = await getConfig();
+    const prefixes = config.prefixes || ["?", "++"];
     const prefix = prefixes.find((p) => message.content.startsWith(p));
     if (!prefix) return;
 
@@ -28,8 +30,26 @@ export default async (client, message) => {
       COOLDOWN_SECONDS * 1000,
     );
 
-    const args = message.content.slice(prefix.length).trim().split(/ +/);
-    const commandName = args.shift().toLowerCase();
+    let rawInput = message.content.slice(prefix.length).trim();
+    let commandName;
+    let args;
+
+    if (prefix === ".") {
+      // Dot prefix is chat-first: route straight to AI.
+      if (rawInput.toLowerCase() === "ai") {
+        rawInput = "";
+      } else if (rawInput.toLowerCase().startsWith("ai ")) {
+        rawInput = rawInput.slice(3).trim();
+      }
+
+      commandName = "ai";
+      args = rawInput ? rawInput.split(/ +/) : [];
+    } else {
+      args = rawInput ? rawInput.split(/ +/) : [];
+      commandName = String(args.shift() || "").toLowerCase();
+    }
+
+    if (!commandName) return;
     const prefixCommandsPath = join(__dirname, "..", "..", "commands");
 
     const prefixCommandsCategories = getAllFiles(prefixCommandsPath, true);
