@@ -5,7 +5,7 @@ import { groq } from "../../utils/ai.js";
 
 const model = "openai/gpt-oss-120b";
 const CONTEXT_TTL_MS = 15 * 60 * 1000;
-const MAX_CONTEXT_MESSAGES = 5;
+const MAX_CONTEXT_MESSAGES = 10;
 const USER_CONTEXT = new Map();
 
 export default {
