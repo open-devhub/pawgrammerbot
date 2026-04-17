@@ -1,7 +1,8 @@
 import "dotenv/config";
-import { Groq } from "groq-sdk";
+import { generateText } from "ai";
+import { searchTool } from "../../tools/get-search.js";
+import { groq } from "../../utils/ai.js";
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const model = "openai/gpt-oss-120b";
 const CONTEXT_TTL_MS = 15 * 60 * 1000;
 const MAX_CONTEXT_MESSAGES = 5;
@@ -24,20 +25,19 @@ export default {
 
       const conversation = await buildConversation(message, question);
 
-      const chatCompletion = await groq.chat.completions.create({
+      const { text } = await generateText({
+        model: groq(model),
         messages: conversation,
-        model,
         temperature: 0.8,
-        max_completion_tokens: 640,
-        top_p: 1,
-        stream: true,
-        stop: null,
+        maxOutputTokens: 640,
+        topP: 1,
+        maxSteps: 3,
+        tools: {
+          search: searchTool,
+        },
       });
 
-      let answer = "";
-      for await (const chunk of chatCompletion) {
-        answer += chunk.choices[0]?.delta?.content || "";
-      }
+      const answer = text || "I could not generate a response.";
 
       const paragraphs = answer.split("\n\n");
       const messageParts = [];
