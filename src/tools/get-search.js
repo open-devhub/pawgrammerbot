@@ -1,19 +1,14 @@
-import { tool } from "ai";
+import { tool, zodSchema } from "ai";
 import { getExa } from "../utils/ai.js";
+import { z } from "zod";
 
 export const searchTool = tool({
   description: "Search for information on the internet and return relevant results.",
-  inputSchema: {
-    type: "object",
-    properties: {
-      query: {
-        type: "string",
-        description: "The search query to execute.",
-      },
-    },
-    required: ["query"],
-    additionalProperties: false,
-  },
+  inputSchema: zodSchema(
+    z.object({
+      query: z.string().describe("The search query to execute."),
+    }),
+  ),
   execute: async ({ query }) => {
     const exa = getExa();
 
