@@ -21,8 +21,10 @@ const SYSTEM_PROMPT = [
   "4) If the request is ambiguous, ask one short clarifying question.",
   "5) When using web search, prefer reputable sources and include links in the answer.",
   "5.1) After using a tool, always provide a final user-facing answer.",
+
   "6) If uncertain, say you are unsure instead of guessing.",
   "7) Keep answers concise and practical.",
+  "8) Always use list format when providing multiple steps or items. Avoid Tables as it can be hard to read in Discord messages.",
 ].join("\n");
 
 const BLOCKED_INTENT_PATTERNS = [
