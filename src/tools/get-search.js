@@ -22,11 +22,7 @@ export const searchTool = tool({
     });
 
     return {
-      results: (result.results || []).slice(0, 5).map((item) => ({
-        title: item.title,
-        url: item.url,
-        highlights: item.highlights || [],
-      })),
+      results: (result.results || [])
     };
   },
 });
