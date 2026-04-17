@@ -3,7 +3,7 @@ import { getExa } from "../utils/ai.js";
 import { z } from "zod";
 
 
-const MAX_CHARACTERS = 980;
+const MAX_CHARACTERS = 500;
 export const searchTool = tool({
   description: "Search for information on the internet and return relevant results.",
   inputSchema: zodSchema(
