@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { generateText, stepCountIs } from "ai";
 import { searchTool } from "../../tools/get-search.js";
+import { createResetContextTool } from "../../tools/reset-context.js";
 import { groq } from "../../utils/ai.js";
 import {
   getUserContext,
@@ -31,6 +32,7 @@ const SYSTEM_PROMPT = [
   "- Prefer bullet points or numbered lists. Do not use tables (Discord UX constraint).",
   "Tool usage:",
   "- When using web search, prioritize reputable sources and include links.",
+  "- If the user asks to reset or clear memory/context, call resetContext before replying.",
   "- Always return a final user-facing answer after using any tool.",
 ].join("\n");
 
@@ -106,6 +108,7 @@ export default {
         stopWhen: stepCountIs(5),
         tools: {
           search: searchTool,
+          resetContext: createResetContextTool(message.author.id),
         },
       });
 
@@ -137,7 +140,10 @@ export default {
         await message.channel.send(part);
       }
 
-      updateUserContext(message.author.id, question, answer);
+      const usedResetContext = wasToolUsed(result, "resetContext");
+      if (!usedResetContext) {
+        updateUserContext(message.author.id, question, answer);
+      }
     } catch (err) {
       console.log(err);
 
@@ -250,6 +256,19 @@ function getBestAnswer(result) {
   }
 
   return "I could not generate a response.";
+}
+
+function wasToolUsed(result, toolName) {
+  const aggregateToolResults = [
+    ...(Array.isArray(result?.toolResults) ? result.toolResults : []),
+    ...(Array.isArray(result?.steps)
+      ? result.steps.flatMap((step) => step?.toolResults || [])
+      : []),
+  ];
+
+  return aggregateToolResults.some(
+    (item) => item?.type === "tool-result" && item?.toolName === toolName,
+  );
 }
 
 function buildToolFallbackText(result) {
