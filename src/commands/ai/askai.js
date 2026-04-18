@@ -237,10 +237,11 @@ function applyOutputGuardrails(answer) {
   if (!output) {
     return "I could not generate a response.";
   }
-
+ 
   output = output.replace(/@everyone/gi, "@ everyone");
   output = output.replace(/@here/gi, "@ here");
-
+  output = output.replace(/<@&(\d+)>/g, "@role");
+  output = output.replace(/<@!?(\d+)>/g, "@user");
   return output;
 }
 
