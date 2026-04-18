@@ -5,7 +5,7 @@ export const resetContextTool = tool({
   description: "Reset the conversation context. Use this if the AI is stuck or not responding appropriately.",
   inputSchema: zodSchema(
     z.object({
-        reason: z.string().describe("Optional reason for resetting the context."),
+        reason: z.string().optional().describe("Optional reason for resetting the context."),
     }),
   ),
   execute: async ({ reason }) => {
