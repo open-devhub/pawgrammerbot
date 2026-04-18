@@ -39,7 +39,15 @@ export default {
         return `**${categoryName}**\n${commandsInCategory.join("\n")}`;
       }),
     );
-    const helpText = `Usage:\n\n\`++[cmd]\`\n\`?[cmd]\`\n\nAvailable Commands:\n\n${categoriesData.join("\n\n")}`;
+    const quickAiHelp = [
+      "Quick AI:",
+      "`++ai <question>` Ask AI",
+      "`++ai reset` Clear your AI context",
+      "`++resetai` Alias for AI context reset",
+      "",
+    ].join("\n");
+
+    const helpText = `Usage:\n\n\`++[cmd]\`\n\`?[cmd]\`\n\n${quickAiHelp}Available Commands:\n\n${categoriesData.join("\n\n")}`;
 
     const embed = new EmbedBuilder()
       .setTitle("📘 Commands Guide")

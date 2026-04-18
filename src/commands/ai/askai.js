@@ -2,8 +2,11 @@ import "dotenv/config";
 import { generateText, stepCountIs } from "ai";
 import { searchTool } from "../../tools/get-search.js";
 import { groq } from "../../utils/ai.js";
-import { getUserContext, appendUserTurn  } from "../../utils/chat-context.js";
-import { resetContextTool } from "../../tools/reset-context.js";
+import {
+  getUserContext,
+  appendUserTurn,
+  clearUserContext,
+} from "../../utils/chat-context.js";
 const model = "openai/gpt-oss-120b";
 const MAX_QUESTION_CHARS = 1000;
 
@@ -55,7 +58,27 @@ export default {
 
       const question = args.join(" ");
       if (!question) {
-        await message.reply("Please provide a question.");
+        await message.reply(
+          [
+            "Please provide a question.",
+            "",
+            "Quick usage:",
+            "1. `++ai explain promises in javascript`",
+            "2. `++ai reset` to clear your AI context",
+            "3. `++resetai` also works",
+          ].join("\n"),
+        );
+        return;
+      }
+
+      const normalizedQuestion = question.trim().toLowerCase();
+      if (["reset", "clear", "reset context", "clear context"].includes(normalizedQuestion)) {
+        const didClear = clearUserContext(message.author.id);
+        await message.reply(
+          didClear
+            ? "Your AI conversation context has been cleared."
+            : "No AI conversation context was found to clear.",
+        );
         return;
       }
 
@@ -83,9 +106,7 @@ export default {
         stopWhen: stepCountIs(5),
         tools: {
           search: searchTool,
-          resetContext: resetContextTool,
         },
-      
       });
 
       const answer = applyOutputGuardrails(getBestAnswer(result));

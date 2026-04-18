@@ -3,7 +3,7 @@ import { clearUserContext } from "../../utils/chat-context.js";
 export default {
   name: "resetai",
   description: "Clear your AI conversation context",
-  aliases: ["aiclear", "clearai", "aireset"],
+  aliases: ["aiclear", "clearai", "aireset", "reset"],
   callback: async (client, message) => {
     try {
       if (message.author.bot) return;
