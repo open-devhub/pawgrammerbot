@@ -54,7 +54,7 @@ export default {
       .setDescription(helpText.trim() || "No commands available.")
       .setColor(0x5865f2)
       .setFooter({
-        text: `Requested by ${message.author.tag} • Kine`,
+        text: `Requested by ${message.author.tag} • Rael`,
         iconURL: message.author.displayAvatarURL(),
       });
     return message.reply({ embeds: [embed] });
