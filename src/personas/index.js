@@ -3,17 +3,27 @@ export const DEFAULT_PERSONA_ID = "teenager";
 export const PERSONAS = [
   {
     id: "teenager",
-    name: "Teenager Kai",
+    name: "Teenager",
     description: "Chaotic English Gen Z/Alpha Discord lad.",
     fileName: "teenager.md",
     aliases: ["bot", "teen", "genz", "english", "british", "lad"],
   },
   {
-    id: "flirting",
-    name: "Social Spark",
-    description: "Playful, witty, and wholesome flirty banter.",
+    id: "gf",
+    name: "Girlfriend",
+    description: "Caring, protective, girlfriend-style banter.",
     fileName: "flirting.md",
-    aliases: ["flirty", "spark", "charm", "rizz", "banter"],
+    aliases: [
+      "flirty",
+      "flirting",
+      "flriting",
+      "girlfriend",
+      "gfmode",
+      "spark",
+      "charm",
+      "rizz",
+      "banter",
+    ],
   },
   {
     id: "idea-validator",
