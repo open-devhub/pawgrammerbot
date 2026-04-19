@@ -23,6 +23,10 @@ function formatPersonaList(personas, activePersonaId) {
   return lines.join("\n");
 }
 
+function formatCurrentPersona(persona) {
+  return `Current persona: ${persona?.name || "Unknown"} (${persona?.id || "n/a"})`;
+}
+
 export default {
   name: "persona",
   description: "List or switch AI personas",
@@ -35,16 +39,20 @@ export default {
       const activePersona = getUserPersona(message.author.id);
 
       if (!args.length || ["list", "ls", "all"].includes(args[0].toLowerCase())) {
-        await message.reply(formatPersonaList(personas, activePersona?.id));
+        await message.reply(
+          [
+            formatCurrentPersona(activePersona),
+            "",
+            formatPersonaList(personas, activePersona?.id),
+          ].join("\n"),
+        );
         return;
       }
 
       const action = args[0].toLowerCase();
 
-      if (["current", "status", "now"].includes(action)) {
-        await message.reply(
-          `Current persona: ${activePersona?.name || "Unknown"} (${activePersona?.id || "n/a"})`,
-        );
+      if (["current", "status", "now", "active", "who", "me"].includes(action)) {
+        await message.reply(formatCurrentPersona(activePersona));
         return;
       }
 
@@ -70,6 +78,7 @@ export default {
             "Examples:",
             "- `++persona list`",
             "- `++persona current`",
+            "- `++persona who`",
             "- `++persona set debugcoach`",
             "- `++persona motivator`",
           ].join("\n"),
