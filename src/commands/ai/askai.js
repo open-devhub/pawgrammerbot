@@ -3,6 +3,7 @@ import { generateText, stepCountIs } from "ai";
 import { searchTool } from "../../tools/get-search.js";
 import { createResetContextTool } from "../../tools/reset-context.js";
 import { groq } from "../../utils/ai.js";
+import { getUserPersonaPrompt } from "../../utils/persona.js";
 import {
   getUserContext,
   appendUserTurn,
@@ -19,9 +20,7 @@ const REFUSAL_MESSAGE =
   "- build or optimize a feature\n" +
   "- find technical resources";
 
-const SYSTEM_PROMPT = [
-  "You are Rael, a senior programming assistant in a Discord server.",
-
+const BASE_SYSTEM_PROMPT = [
   "Priority (strict order):",
   "1) Safety rules",
   "2) Instruction compliance",
@@ -106,6 +105,7 @@ export default {
             "1. `++ai explain promises in javascript`",
             "2. `++ai reset` to clear your AI context",
             "3. `++resetai` also works",
+            "4. `++persona list` and `++persona set debugcoach`",
           ].join("\n"),
         );
         return;
@@ -135,10 +135,14 @@ export default {
       }
 
       const conversation = await buildConversation(message, question);
+      const { persona, prompt: personaPrompt } = getUserPersonaPrompt(
+        message.author.id,
+      );
+      const systemPrompt = buildSystemPrompt(persona, personaPrompt);
 
       const result = await generateText({
         model: groq(model),
-        system: SYSTEM_PROMPT,
+        system: systemPrompt,
         messages: conversation,
       
         temperature: 0.8,
@@ -296,6 +300,20 @@ function getBestAnswer(result) {
   }
 
   return "I could not generate a response.";
+}
+
+function buildSystemPrompt(persona, personaPrompt) {
+  const sections = [BASE_SYSTEM_PROMPT];
+
+  if (persona?.name) {
+    sections.push(`Active persona: ${persona.name} (${persona.id})`);
+  }
+
+  if (personaPrompt) {
+    sections.push(`Persona behavior profile:\n${personaPrompt}`);
+  }
+
+  return sections.join("\n\n");
 }
 
 function wasToolUsed(result, toolName) {

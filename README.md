@@ -17,13 +17,16 @@ Use either `++[cmd]` or `?[cmd]` (without brackets).
 ++dontasktoask
 ++rules
 ++org
+++persona list
+++persona set debugcoach
 ```
 
 ## 🛠️ Commands Overview
 
 | Command         | Description                                            |
 | --------------- | ------------------------------------------------------ |
-| askai           | Ask llama-3.3-70b-versatile Ai Model                   |
+| askai           | Ask the AI model                                       |
+| persona         | List and switch AI personas                            |
 | articles        | Latest developer news headlines                        |
 | mdn             | Search MDN Web Docs                                    |
 | wiki            | Search Wikipedia                                       |
