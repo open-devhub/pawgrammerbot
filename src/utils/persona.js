@@ -15,7 +15,7 @@ const userPersonaState = new Map();
 const personaPromptCache = new Map();
 
 export function listAvailablePersonas() {
-  return PERSONAS;
+  return PERSONAS.slice();
 }
 
 export function getUserPersona(userId) {
