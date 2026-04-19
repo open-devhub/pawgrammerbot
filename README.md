@@ -25,7 +25,7 @@ Use either `++[cmd]` or `?[cmd]` (without brackets).
 
 | Command         | Description                                            |
 | --------------- | ------------------------------------------------------ |
-| askai           | Ask the AI model                                       |
+| ai              | Ask the AI model                                       |
 | persona         | List and switch AI personas                            |
 | articles        | Latest developer news headlines                        |
 | mdn             | Search MDN Web Docs                                    |
