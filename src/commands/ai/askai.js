@@ -1,14 +1,14 @@
-import "dotenv/config";
 import { generateText, stepCountIs } from "ai";
+import "dotenv/config";
 import { searchTool } from "../../tools/get-search.js";
 import { createResetContextTool } from "../../tools/reset-context.js";
 import { groq } from "../../utils/ai.js";
-import { getUserPersonaPrompt } from "../../utils/persona.js";
 import {
-  getUserContext,
   appendUserTurn,
   clearUserContext,
+  getUserContext,
 } from "../../utils/chat-context.js";
+import { getUserPersonaPrompt } from "../../utils/persona.js";
 const model = "openai/gpt-oss-120b";
 const MAX_QUESTION_CHARS = 1000;
 
@@ -70,7 +70,6 @@ const BASE_SYSTEM_PROMPT = [
   "Goal:",
   "- Maximize signal per token.",
   "- Deliver actionable, implementation-ready answers.",
-
 ].join("\n");
 
 const BLOCKED_INTENT_PATTERNS = [
@@ -102,17 +101,21 @@ export default {
             "Please provide a question.",
             "",
             "Quick usage:",
-            "1. `++ai explain promises in javascript`",
-            "2. `++ai reset` to clear your AI context",
-            "3. `++resetai` also works",
-            "4. `++persona list` and `++persona set debugcoach`",
+            "1. `$ai explain promises in javascript`",
+            "2. `$ai reset` to clear your AI context",
+            "3. `$resetai` also works",
+            "4. `$persona list` and `$persona set debugcoach`",
           ].join("\n"),
         );
         return;
       }
 
       const normalizedQuestion = question.trim().toLowerCase();
-      if (["reset", "clear", "reset context", "clear context"].includes(normalizedQuestion)) {
+      if (
+        ["reset", "clear", "reset context", "clear context"].includes(
+          normalizedQuestion,
+        )
+      ) {
         const didClear = clearUserContext(message.author.id);
         await message.reply(
           didClear
@@ -144,7 +147,7 @@ export default {
         model: groq(model),
         system: systemPrompt,
         messages: conversation,
-      
+
         temperature: 0.8,
         maxOutputTokens: 640,
         topP: 1,
@@ -280,7 +283,7 @@ function applyOutputGuardrails(answer) {
   if (!output) {
     return "I could not generate a response.";
   }
- 
+
   output = output.replace(/@everyone/gi, "@ everyone");
   output = output.replace(/@here/gi, "@ here");
   output = output.replace(/<@&(\d+)>/g, "@role");
@@ -339,8 +342,12 @@ function buildToolFallbackText(result) {
 
   const seen = new Set();
   const searchResults = aggregateToolResults
-    .filter((item) => item?.type === "tool-result" && item?.toolName === "search")
-    .flatMap((item) => (Array.isArray(item?.output?.results) ? item.output.results : []))
+    .filter(
+      (item) => item?.type === "tool-result" && item?.toolName === "search",
+    )
+    .flatMap((item) =>
+      Array.isArray(item?.output?.results) ? item.output.results : [],
+    )
     .filter((item) => {
       if (!item?.url || seen.has(item.url)) {
         return false;

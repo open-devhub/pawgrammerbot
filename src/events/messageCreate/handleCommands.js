@@ -19,7 +19,7 @@ export default async (client, message) => {
 
   try {
     const config = await getConfig();
-    const prefixes = config.prefixes || ["?", "++"];
+    const prefixes = config.prefixes || ["."];
     const prefix = prefixes.find((p) => message.content.startsWith(p));
     if (!prefix) return;
 
