@@ -10,9 +10,10 @@ function formatPersonaList(personas, activePersonaId) {
   const lines = ["Available personas:"];
 
   for (const persona of personas) {
-    const aliases = Array.isArray(persona.aliases) && persona.aliases.length
-      ? ` (aliases: ${persona.aliases.join(", ")})`
-      : "";
+    const aliases =
+      Array.isArray(persona.aliases) && persona.aliases.length
+        ? ` (aliases: ${persona.aliases.join(", ")})`
+        : "";
     const activeMarker = persona.id === activePersonaId ? " [active]" : "";
 
     lines.push(
@@ -38,7 +39,10 @@ export default {
       const personas = listAvailablePersonas();
       const activePersona = getUserPersona(message.author.id);
 
-      if (!args.length || ["list", "ls", "all"].includes(args[0].toLowerCase())) {
+      if (
+        !args.length ||
+        ["list", "ls", "all"].includes(args[0].toLowerCase())
+      ) {
         await message.reply(
           [
             formatCurrentPersona(activePersona),
@@ -51,7 +55,9 @@ export default {
 
       const action = args[0].toLowerCase();
 
-      if (["current", "status", "now", "active", "who", "me"].includes(action)) {
+      if (
+        ["current", "status", "now", "active", "who", "me"].includes(action)
+      ) {
         await message.reply(formatCurrentPersona(activePersona));
         return;
       }
@@ -76,11 +82,11 @@ export default {
           [
             "Choose a persona to switch to.",
             "Examples:",
-            "- `++persona list`",
-            "- `++persona current`",
-            "- `++persona who`",
-            "- `++persona set debugcoach`",
-            "- `++persona motivator`",
+            "- `$persona list`",
+            "- `$persona current`",
+            "- `$persona who`",
+            "- `$persona set debugcoach`",
+            "- `$persona motivator`",
           ].join("\n"),
         );
         return;
@@ -92,7 +98,7 @@ export default {
         await message.reply(
           [
             `Persona \`${requestedPersona}\` was not found.`,
-            "Use `++persona list` to see available personas.",
+            "Use `$persona list` to see available personas.",
           ].join("\n"),
         );
         return;
