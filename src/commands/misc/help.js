@@ -44,6 +44,8 @@ export default {
       "`++ai <question>` Ask AI",
       "`++ai reset` Clear your AI context",
       "`++resetai` Alias for AI context reset",
+      "`++persona list` List available personas",
+      "`++persona set <name>` Switch persona",
       "",
     ].join("\n");
 
