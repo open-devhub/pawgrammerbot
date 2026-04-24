@@ -1,95 +1,90 @@
-# Pawgrammer Bot
+# 🐾 Pawgrammer Bot
 
-Pawgrammer is DevHub’s documentation, AI, and reference assistant bot.
-It provides access to AI chat, curated knowledge, and utility commands designed to support contributors and users across the platform.
+Pawgrammer is DevHub’s **documentation, AI, references, and news bot**.
+It helps contributors stay informed, learn faster, and access curated resources, all through simple **prefix commands**.
 
-The bot is built around a simple prefix-based interface focused on clarity, consistency, and fast access to information.
+## 📖 Usage
 
-## Usage
+All commands are **prefix-only**.
+Use either `++[cmd]` or `?[cmd]` (without brackets).
 
-Pawgrammer uses prefix commands. The available prefixes are:
+### Examples
 
-- `.` → AI-first input mode
-- `$` → Command-first mode
-
-### AI-first mode (`.`)
-
-The dot prefix sends your message directly to the AI system without requiring a command name.
-
-Example:
-. What is a JavaScript promise?
-. Explain async/await in simple terms
-
-### Command-first mode (`$`)
-
-Use this for structured commands such as configuration, status checks, or utility actions.
-
-Example:
-
-```
-$help
-$ping
-$persona list
-$resetai
+```text
+++ai What’s the difference between npm and yarn?
+++mdn WeakMap
+++news
+++dontasktoask
+++rules
+++org
+++persona list
+++persona set debugcoach
 ```
 
-## Commands Overview
+## 🛠️ Commands Overview
 
-| Command   | Aliases                                  | Description                           |
-| --------- | ---------------------------------------- | ------------------------------------- |
-| `ai`      | `askai`                                  | Sends a prompt to the AI model        |
-| `persona` | `personaai`, `mode`, `character`         | Manage or view AI personas            |
-| `resetai` | `aiclear`, `clearai`, `aireset`, `reset` | Clears AI conversation context        |
-| `help`    | —                                        | Displays available commands and usage |
-| `ping`    | —                                        | Returns bot latency                   |
+| Command         | Description                                            |
+| --------------- | ------------------------------------------------------ |
+| ai              | Ask the AI model                                       |
+| persona         | List and switch AI personas                            |
+| articles        | Latest developer news headlines                        |
+| mdn             | Search MDN Web Docs                                    |
+| wiki            | Search Wikipedia                                       |
+| repo            | Get information about a GitHub repository              |
+| user            | Get information about a GitHub user                    |
+| ping            | Pong!                                                  |
+| news            | Latest developer/tech news headlines                   |
+| askbetter       | Guidelines on how to ask a quality question            |
+| dontasktoask    | dontasktoask.com                                       |
+| github          | GitHub organization link                               |
+| imageofanerror  | Asking for text instead of error images                |
+| imageofcode     | Asking for text instead of code images                 |
+| itsnotworking   | Asking for more detail than "it is not working"        |
+| mcve            | Minimal Complete Verifiable Example                    |
+| noattempt       | User has shown no attempt at solving the problem       |
+| nocode          | User provided no code                                  |
+| nodebugging     | User has not attempted to debug                        |
+| noerror         | User did not provide the error message                 |
+| nohello         | Dont just say hello, ask the question                  |
+| noresearch      | User has not searched for the answer                   |
+| rules           | Sends link to rule channel                             |
+| sask            | Short Ask - asking to ask                              |
+| tldr            | Too long, didn't read (requesting summary)             |
+| toomuchcode     | User posted an entire project                          |
+| toomuchinfo     | Post contains irrelevant information                   |
+| tos             | Discord Terms of Service                               |
+| tryit           | Try it and see / TIAS                                  |
+| unclearquestion | The question makes no sense                            |
+| xyproblem       | The XY Problem                                         |
+| backseat        | Rule against unsolicited advice or "backseat" coding   |
+| changesubjects  | Rule against changing the subject mid-help             |
+| chatgpt         | Policy on AI-generated code (ChatGPT, Claude, etc.)    |
+| cheat           | Rule against asking for help with cheating             |
+| crypto          | Policy on crypto, NFT, and blockchain discussion       |
+| dm              | Rule against asking for DMs for help                   |
+| english         | Request to use English for technical support           |
+| exams           | Rule against help with active exams/tests              |
+| flame           | Rule against flaming or toxicity                       |
+| freework        | Rule against asking people to code for you for free    |
+| hacks           | Rule against discussing hacking or unauthorized access |
+| image           | General rule on image usage in chat                    |
+| moveon          | Request to end a toxic or circular argument            |
+| nickpolicy      | Rules regarding nicknames (no pings/offensive content) |
+| noping          | Rule against unnecessarily pinging staff or users      |
+| scraping        | Policy on web scraping and automation                  |
+| selfbot         | Strict rule against self-bots                          |
+| spoon           | Rule against "spoon-feeding" / asking to be spoon-fed  |
+| voice           | Rules for voice channel behavior                       |
 
-## AI Command Usage
-
-The AI system supports both prefixes:
-
-```
-. What is event loop in Node.js?
-$ai What is event loop in Node.js?
-```
-
-To reset context:
-
-```
-$resetai
-or
-$ai reset
-```
-
-Resetting clears conversation history and restores default behavior.
-
-## Persona System
-
-The persona system allows users to adjust the AI’s behavior and response style.
-
-### Available subcommands:
-
-- `$persona list`
-  Displays all available personas.
-
-- `$persona current` / `status` / `now` / `active`
-  Shows the currently active persona.
-
-- `$persona set <name>` / `use <name>` / `switch <name>`
-  Switches to a selected persona.
-
-- `$persona reset` / `clear`
-  Restores the default persona and clears context.
-
-## Design Philosophy
+## 🐾 Philosophy
 
 Pawgrammer is designed to:
 
-- Provide fast and reliable access to AI-assisted information
-- Encourage consistent and structured interactions
-- Support developer productivity within DevHub
-- Maintain a minimal and predictable command system
+- Empower contributors with **fast, reliable knowledge**.
+- Encourage **community best practices**.
+- Keep DevHub’s spaces **welcoming, informed, and fun**.
 
-## License
+## 📄 License
 
 Pawgrammer Bot is licensed under DSAL v1.0
-See the full license in the [LICENSE](./LICENSE) file
+See license in [LICENSE](./LICENSE)

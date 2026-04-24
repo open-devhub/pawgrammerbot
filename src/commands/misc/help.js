@@ -1,55 +1,50 @@
 import { EmbedBuilder } from "discord.js";
 import path, { join } from "path";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url"; // Added pathToFileURL
 import getAllFiles from "../../utils/getAllFiles.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default {
   name: "help",
-  description:
-    "Provides information about available commands and how to use them.",
-  /**
-   *
-   * @param {Client} client
-   * @param {Message} message
-   */
+  description: "Provides information about available commands and how to use them.",
   callback: async (client, message) => {
     const prefixCommandsPath = join(__dirname, "..", "..", "commands");
-
     const prefixCommandsCategories = getAllFiles(prefixCommandsPath, true);
 
     const categoriesData = await Promise.all(
       prefixCommandsCategories.map(async (category) => {
         const categoryName = path.basename(category);
         const commandFiles = getAllFiles(category).filter(
-          (file) => !file.endsWith("help.js"),
+          (file) => !file.endsWith("help.js")
         );
+        
         const commands = await Promise.all(
           commandFiles.map(async (file) => {
-            let rel = path.relative(__dirname, file).replace(/\\/g, "/");
-            if (!rel.startsWith(".")) rel = "./" + rel;
-            const cmd = await import(rel);
+            // FIX: Convert the absolute file path to a file:// URL for Windows
+            const cmd = await import(pathToFileURL(file).href);
             return cmd;
-          }),
+          })
         );
+
         const commandsInCategory = commands.map(
-          (cmd) => `\`${cmd.default.name}\`: ${cmd.default.description}`,
+          (cmd) => `\`${cmd.default.name}\`: ${cmd.default.description}`
         );
         return `**${categoryName}**\n${commandsInCategory.join("\n")}`;
-      }),
+      })
     );
+
     const quickAiHelp = [
       "Quick AI:",
-      "`$ai <question>` Ask AI",
-      "`$ai reset` Clear your AI context",
-      "`$resetai` Alias for AI context reset",
-      "`$persona list` List available personas",
-      "`$persona set <name>` Switch persona",
+      "`++ai <question>` Ask AI",
+      "`++ai reset` Clear your AI context",
+      "`++resetai` Alias for AI context reset",
+      "`++persona list` List available personas",
+      "`++persona set <name>` Switch persona",
       "",
     ].join("\n");
 
-    const helpText = `Usage:\n\n\`$[cmd]\`\n\`?[cmd]\`\n\n${quickAiHelp}Available Commands:\n\n${categoriesData.join("\n\n")}`;
+    const helpText = `Usage:\n\n\`++[cmd]\`\n\`?[cmd]\`\n\n${quickAiHelp}Available Commands:\n\n${categoriesData.join("\n\n")}`;
 
     const embed = new EmbedBuilder()
       .setTitle("📘 Commands Guide")
@@ -59,6 +54,7 @@ export default {
         text: `Requested by ${message.author.tag} • Rael`,
         iconURL: message.author.displayAvatarURL(),
       });
+      
     return message.reply({ embeds: [embed] });
   },
 };

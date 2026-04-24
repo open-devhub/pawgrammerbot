@@ -1,5 +1,5 @@
 import path from "path";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url"; // Added pathToFileURL
 import getAllFiles from "../utils/getAllFiles.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -15,7 +15,8 @@ export default (client) => {
 
     client.on(eventName, async (arg) => {
       for (const eventFile of eventFiles) {
-        const eventFunction = await import(eventFile);
+        // Wrap the path in pathToFileURL().href to fix the Windows ESM bug
+        const eventFunction = await import(pathToFileURL(eventFile).href);
         await eventFunction.default(client, arg);
       }
     });
