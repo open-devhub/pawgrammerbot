@@ -1,7 +1,7 @@
 {
   "guildId": "1429026875946172459",
   "clientId": "1430219756820103370",
-  "prefixes": [".", "$"],
+  "prefixes": [".", "++"],
   "serverConfig": {
     "botCommandsChannel": "1429028988109455454",
     "rulesChannel": "1429027865957109861"

@@ -1,5 +1,5 @@
 import path, { join } from "path";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 import getAllFiles from "../../utils/getAllFiles.js";
 import getConfig from "../../utils/getConfig.js";
 
@@ -35,7 +35,6 @@ export default async (client, message) => {
     let args;
 
     if (prefix === ".") {
-      // Dot prefix is chat-first: route straight to AI.
       if (rawInput.toLowerCase() === "ai") {
         rawInput = "";
       } else if (rawInput.toLowerCase().startsWith("ai ")) {
@@ -58,7 +57,7 @@ export default async (client, message) => {
     for (const category of prefixCommandsCategories) {
       const commandFiles = getAllFiles(category);
       for (const file of commandFiles) {
-        commandPromises.push(import(file));
+        commandPromises.push(import(pathToFileURL(file).href));
       }
     }
 
