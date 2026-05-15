@@ -4,10 +4,10 @@ export default (client) => {
   client.user.setPresence({
     activities: [
       {
-        name: "purrhaps you need docs? 😸",
-        type: ActivityType.Playing,
+        name: " Human conversations",
+        type: ActivityType.Listening,
       },
     ],
-    status: "playing",
+    status: "online",
   });
 };
