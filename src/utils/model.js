@@ -32,18 +32,11 @@ export const MODELS = [
     aliases: ["deepseek", "v4", "flash"],
   },
   {
-    id: "google/gemma-4-31b-it:free",
-    name: "Gemma 4 31B IT",
-    provider: "openrouter",
-    description: "Balanced responses with solid instruction tuning.",
-    aliases: ["gemma", "gemma4", "31b"],
-  },
-  {
-    id: "arcee-ai/trinity-large-thinking:free",
-    name: "Trinity Large Thinking",
-    provider: "openrouter",
-    description: "Reasoning-heavy style with longer thoughts.",
-    aliases: ["trinity", "arcee"],
+    id:"nex-agi/nex-n2-pro:free",
+    name:"Nex N2",
+    provider:"openrouter",
+    description:"a latest open source model great in coding.",
+    aliases : ["Nex-N2" , "Nex-AGI"]
   },
   {
     id: "baidu/cobuddy:free",
