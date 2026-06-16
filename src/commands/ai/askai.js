@@ -1,10 +1,10 @@
 import { generateText, stepCountIs } from "ai";
 import { AttachmentBuilder } from "discord.js";
 import "dotenv/config";
+import { generateImage } from "../../tools/generate-image.js";
 import { searchTool } from "../../tools/get-search.js";
 import { fetchStock, stockTool } from "../../tools/get-stock.js";
 import { createResetContextTool } from "../../tools/reset-context.js";
-import { renderStockCard } from "../../utils/stock-card.js";
 import { groq, openRouter } from "../../utils/ai.js";
 import {
   appendUserTurn,
@@ -13,6 +13,7 @@ import {
 } from "../../utils/chat-context.js";
 import { DEFAULT_MODEL_ID, getUserModel } from "../../utils/model.js";
 import { getUserPersonaPrompt } from "../../utils/persona.js";
+import { renderStockCard } from "../../utils/stock-card.js";
 import { recordUsage } from "../../utils/user-stats.js";
 const MAX_QUESTION_CHARS = 1000;
 
@@ -24,7 +25,6 @@ const MAX_IMAGE_ATTACHMENTS = 4;
 const REFUSAL_MESSAGE =
   "I can't help with that due to safety restrictions.\n" +
   "But I can help with most other things — just ask!";
-
 
 const BASE_SYSTEM_PROMPT = [
   "Priority (strict order):",
@@ -156,6 +156,55 @@ export default {
       if (!isSafeInput(question)) {
         await message.reply(REFUSAL_MESSAGE);
         return;
+      }
+
+      // if user asks to generate image
+      if (isImageRequest(question)) {
+        const { persona, prompt: personaPrompt } = getUserPersonaPrompt(
+          message.author.id,
+        );
+        const systemPrompt = buildSystemPrompt(persona, personaPrompt);
+
+        const imageBuffer = await generateImage(question);
+        if (!imageBuffer) {
+          await message.reply("Failed to generate image.");
+          return;
+        }
+
+        try {
+          const captionResult = await generateText({
+            model: groq(DEFAULT_MODEL_ID),
+            system: systemPrompt,
+            messages: [
+              {
+                role: "user",
+                content: `Write a single concise caption starting with "Here is a picture of" for the following image prompt: "${question}"`,
+              },
+            ],
+            temperature: 0.7,
+            maxOutputTokens: 32,
+          });
+
+          const caption = (
+            captionResult?.text || `Here is a picture of ${question}`
+          ).trim();
+          const attachment = new AttachmentBuilder(imageBuffer, {
+            name: "generated.png",
+          });
+
+          await message.channel.send({
+            content: caption,
+            files: [attachment],
+            allowedMentions: { parse: [] },
+          });
+
+          updateUserContext(message.author.id, question, caption);
+          return;
+        } catch (err) {
+          console.error("Image caption generation failed:", err);
+          await message.reply("Image generated but failed to create caption.");
+          return;
+        }
       }
 
       const conversation = await buildConversation(
@@ -376,6 +425,16 @@ function isSafeInput(question) {
   }
 
   return true;
+}
+
+function isImageRequest(question) {
+  if (!question) return false;
+
+  const patterns = [
+    /\b(image|picture|photo|img|generate image|create image|draw|illustrat(e|ion)|render|art of|make an image|ai image|portrait|landscape)\b/i,
+  ];
+
+  return patterns.some((p) => p.test(question));
 }
 
 function applyOutputGuardrails(answer) {
