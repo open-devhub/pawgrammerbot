@@ -22,6 +22,15 @@ const MAX_QUESTION_CHARS = 1000;
 const VISION_MODEL_ID = "nex-agi/nex-n2-pro:free";
 const MAX_IMAGE_ATTACHMENTS = 4;
 
+// Rate limiting for image generation: allow only IMAGE_GEN_LIMIT per
+// IMAGE_GEN_WINDOW_MS across the whole bot (global limiter).
+const IMAGE_GEN_WINDOW_MS = 60_000; // 1 minute
+const IMAGE_GEN_LIMIT = 2; // (legacy) max requests per window
+// Simple global limiter: store a single timestamp (ms) indicating when the
+// next image generation is allowed. If `Date.now()` is less than this value,
+// we reject requests.
+let lastImageGenAt = 0; // epoch ms when next image gen is permitted
+
 const REFUSAL_MESSAGE =
   "I can't help with that due to safety restrictions.\n" +
   "But I can help with most other things — just ask!";
@@ -160,6 +169,16 @@ export default {
 
       // if user asks to generate image
       if (isImageRequest(question)) {
+        const now = Date.now();
+        if (now < lastImageGenAt) {
+          await message.reply(
+            `Image generation rate limit exceeded. Please try again in a minute.`,
+          );
+          return;
+        }
+
+        lastImageGenAt = now + IMAGE_GEN_WINDOW_MS;
+
         const { persona, prompt: personaPrompt } = getUserPersonaPrompt(
           message.author.id,
         );
