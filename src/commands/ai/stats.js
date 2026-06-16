@@ -38,7 +38,7 @@ export default {
         displayName,
         handle: `@${target.username}`,
         avatarUrl,
-        brand: "Pawgrammer",
+        brand: "Rael",
         heatmap: stats.heatmap,
         lifetimeTokens: stats.lifetimeTokens,
         peakDayTokens: stats.peakDayTokens,

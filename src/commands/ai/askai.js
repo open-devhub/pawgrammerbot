@@ -1,7 +1,10 @@
 import { generateText, stepCountIs } from "ai";
+import { AttachmentBuilder } from "discord.js";
 import "dotenv/config";
 import { searchTool } from "../../tools/get-search.js";
+import { fetchStock, stockTool } from "../../tools/get-stock.js";
 import { createResetContextTool } from "../../tools/reset-context.js";
+import { renderStockCard } from "../../utils/stock-card.js";
 import { groq, openRouter } from "../../utils/ai.js";
 import {
   appendUserTurn,
@@ -19,12 +22,9 @@ const VISION_MODEL_ID = "nex-agi/nex-n2-pro:free";
 const MAX_IMAGE_ATTACHMENTS = 4;
 
 const REFUSAL_MESSAGE =
-  "I can’t help with that request due to safety restrictions.\n" +
-  "Try something like:\n" +
-  "- explain a programming concept\n" +
-  "- debug code\n" +
-  "- build or optimize a feature\n" +
-  "- find technical resources";
+  "I can't help with that due to safety restrictions.\n" +
+  "But I can help with most other things — just ask!";
+
 
 const BASE_SYSTEM_PROMPT = [
   "Priority (strict order):",
@@ -47,10 +47,11 @@ const BASE_SYSTEM_PROMPT = [
   "- Avoid generic advice. Be concrete.",
 
   "Interaction behavior:",
+  "- Be natural and conversational. You don't have to be overly formal or rigid.",
   "- If the request is unclear, ask exactly ONE precise clarifying question.",
   "- If multiple interpretations exist, pick the most likely one and proceed.",
   "- Do not ask unnecessary follow-ups.",
-  "- Assume user is technical. Skip basics.",
+  "- Assume user is technical. Skip basics unless asked.",
 
   "Response format:",
   "- Keep output concise and dense.",
@@ -61,7 +62,8 @@ const BASE_SYSTEM_PROMPT = [
   "- If giving code, ensure it compiles or is logically correct.",
 
   "Tool usage:",
-  "- Use tools only when they add clear value.",
+  "- Use tools when they add value.",
+  "- For stock/ticker/share-price questions, call the stock tool. The bot renders a price card automatically. You can give a longer, more conversational reply (not just one-line).",
   "- For web search: prioritize official docs, primary sources, or well-known repos.",
   "- Always include direct links when using web results.",
   "- Never fabricate sources.",
@@ -191,12 +193,13 @@ export default {
         system: systemPrompt,
         messages: conversation,
 
-        temperature: 0.8,
-        maxOutputTokens: 640,
+        temperature: 0.9,
+        maxOutputTokens: 1024,
         topP: 1,
         stopWhen: stepCountIs(5),
         tools: {
           search: searchTool,
+          stock: stockTool,
           resetContext: createResetContextTool(message.author.id),
         },
       });
@@ -228,6 +231,9 @@ export default {
       for (const part of messageParts) {
         await message.channel.send(part);
       }
+
+      // If the AI looked up a stock, render and attach a visual price card.
+      await sendStockCards(message, result);
 
       const usedResetContext = wasToolUsed(result, "resetContext");
       if (!usedResetContext) {
@@ -409,6 +415,57 @@ function buildSystemPrompt(persona, personaPrompt) {
   }
 
   return sections.join("\n\n");
+}
+
+// Collects successful stock tool calls, re-fetches full data (incl. chart
+// series) for each unique symbol, and sends a rendered price card.
+async function sendStockCards(message, result) {
+  const aggregateToolResults = [
+    ...(Array.isArray(result?.toolResults) ? result.toolResults : []),
+    ...(Array.isArray(result?.steps)
+      ? result.steps.flatMap((step) => step?.toolResults || [])
+      : []),
+  ];
+
+  const seen = new Set();
+  const symbols = aggregateToolResults
+    .filter(
+      (item) =>
+        item?.type === "tool-result" &&
+        item?.toolName === "stock" &&
+        item?.output?.success &&
+        item?.output?.symbol,
+    )
+    .map((item) => String(item.output.symbol))
+    .filter((symbol) => {
+      if (seen.has(symbol)) return false;
+      seen.add(symbol);
+      return true;
+    })
+    .slice(0, 3); // Cap attachments per response.
+
+  for (const symbol of symbols) {
+    try {
+      const data = await fetchStock(symbol);
+      const buffer = renderStockCard({
+        symbol: data.symbol,
+        name: data.name,
+        exchange: data.exchange,
+        currency: data.currency,
+        price: data.price,
+        change: data.change,
+        percentChange: data.percentChange,
+        series: data.series,
+        brand: "Pawgrammer",
+      });
+      const attachment = new AttachmentBuilder(buffer, {
+        name: `stock-${data.symbol}.png`,
+      });
+      await message.channel.send({ files: [attachment] });
+    } catch (err) {
+      console.error(`Failed to render stock card for ${symbol}:`, err);
+    }
+  }
 }
 
 function wasToolUsed(result, toolName) {
