@@ -46,7 +46,7 @@ export default {
         change: data.change,
         percentChange: data.percentChange,
         series: data.series,
-        brand: "Pawgrammer",
+        brand: "Rael",
       });
 
       const attachment = new AttachmentBuilder(buffer, {
