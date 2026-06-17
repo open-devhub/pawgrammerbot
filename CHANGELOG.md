@@ -7,6 +7,10 @@
 - Session-based context management system
 - Session-based context redesign specification
 
+### Changed
+
+- Switched vision model to Groq
+
 ### Fixed
 
 - Removed redundant `clearUserContext` calls
