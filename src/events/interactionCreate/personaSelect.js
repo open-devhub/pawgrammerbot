@@ -3,7 +3,6 @@ import {
   EmbedBuilder,
   StringSelectMenuBuilder,
 } from "discord.js";
-import { clearUserContext } from "../../utils/chat-context.js";
 import {
   getUserPersona,
   listAvailablePersonas,
@@ -79,8 +78,6 @@ export default async (client, interaction) => {
     });
     return;
   }
-
-  clearUserContext(interaction.user.id);
 
   const personas = listAvailablePersonas();
   const activePersona = getUserPersona(interaction.user.id);

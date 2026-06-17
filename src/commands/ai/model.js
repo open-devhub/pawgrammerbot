@@ -3,7 +3,6 @@ import {
   EmbedBuilder,
   StringSelectMenuBuilder,
 } from "discord.js";
-import { clearUserContext } from "../../utils/chat-context.js";
 import {
   clearUserModel,
   getUserModel,
@@ -104,11 +103,10 @@ export default {
 
       if (["default", "reset", "clear"].includes(action)) {
         clearUserModel(message.author.id);
-        clearUserContext(message.author.id);
 
         const fallbackModel = getUserModel(message.author.id);
         await message.reply(
-          `Model reset to default: ${fallbackModel?.name || "Unknown"} (${fallbackModel?.id || "n/a"}). AI context was cleared too.`,
+          `Model reset to default: ${fallbackModel?.name || "Unknown"} (${fallbackModel?.id || "n/a"}).`,
         );
         return;
       }
@@ -142,12 +140,9 @@ export default {
         return;
       }
 
-      clearUserContext(message.author.id);
-
       await message.reply(
         [
           `Switched to ${selected.name} (${selected.id}).`,
-          "AI context was cleared to avoid mixing styles.",
         ].join("\n"),
       );
     } catch (err) {

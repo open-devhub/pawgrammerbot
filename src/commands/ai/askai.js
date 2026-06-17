@@ -1,19 +1,24 @@
 import { generateText, stepCountIs } from "ai";
 import { AttachmentBuilder } from "discord.js";
 import "dotenv/config";
+import { createGetImageTool } from "../../tools/get-image.js";
 import { searchTool } from "../../tools/get-search.js";
 import { fetchStock, stockTool } from "../../tools/get-stock.js";
-import { createResetContextTool } from "../../tools/reset-context.js";
-import { renderStockCard } from "../../utils/stock-card.js";
 import { groq, openRouter } from "../../utils/ai.js";
 import {
+  appendAssistantTurn,
   appendUserTurn,
-  clearUserContext,
-  getUserContext,
+  getActiveSession,
+  getOrCreateSession,
+  isOverBudget,
+  recordTokens,
+  sessionResetsAt,
 } from "../../utils/chat-context.js";
 import { DEFAULT_MODEL_ID, getUserModel } from "../../utils/model.js";
 import { getUserPersonaPrompt } from "../../utils/persona.js";
+import { renderStockCard } from "../../utils/stock-card.js";
 import { recordUsage } from "../../utils/user-stats.js";
+
 const MAX_QUESTION_CHARS = 1000;
 
 // When a message contains image attachments we bypass the user's selected
@@ -24,7 +29,6 @@ const MAX_IMAGE_ATTACHMENTS = 4;
 const REFUSAL_MESSAGE =
   "I can't help with that due to safety restrictions.\n" +
   "But I can help with most other things — just ask!";
-
 
 const BASE_SYSTEM_PROMPT = [
   "Priority (strict order):",
@@ -68,7 +72,7 @@ const BASE_SYSTEM_PROMPT = [
   "- Always include direct links when using web results.",
   "- Never fabricate sources.",
   "- After tool use, ALWAYS return a final user-facing answer.",
-  "- If user asks to reset memory/context, call resetContext BEFORE responding.",
+  "- Earlier images appear as `[image #N — mediaType, Xmin ago]` placeholders. If the user refers to an earlier image, or you need to re-examine one, call the `getImage` tool with that index. The current turn's images are already attached and need no tool call.",
 
   "Failure handling:",
   "- If request violates policy → return refusal message only.",
@@ -78,17 +82,16 @@ const BASE_SYSTEM_PROMPT = [
   "Goal:",
   "- Maximize signal per token.",
   "- Deliver actionable, implementation-ready answers.",
-].join("\n");
 
-const SERVER_INFO = [
   "Server context:",
   "- DevHub is a friendly Discord community for programmers and creators.",
   "- Focus areas: programming help, debugging, code reviews, learning resources, and building projects.",
   "- Tone: supportive, practical, and concise.",
   "- Encourage collaboration and respectful communication.",
   "- Invite: https://discord.gg/MuZFAeVHgp",
-  " - Provide Server Info when asked about the server or community you are part of.",
+  "- Provide Server Info when asked about the server or community you are part of.",
 ].join("\n");
+
 const BLOCKED_INTENT_PATTERNS = [
   /\b(build|create|write|generate)\b.{0,40}\b(malware|ransomware|keylogger|trojan|virus|worm|botnet)\b/i,
   /\b(phishing|credential\s*steal|steal\s+password|token\s+stealer)\b/i,
@@ -107,6 +110,9 @@ export default {
   description: "Ask the AI model",
   aliases: ["ai"],
   callback: async (client, message, args) => {
+    // Declared here so the catch block can clean up the "Reading image..."
+    // placeholder if generation fails after it was already posted.
+    let loadingMessage = null;
     try {
       if (message.author.bot) return;
       await message.channel.sendTyping();
@@ -122,26 +128,10 @@ export default {
             "",
             "Quick usage:",
             "1. `$ai explain promises in javascript`",
-            "2. `$ai reset` to clear your AI context",
-            "3. `$resetai` also works",
-            "4. `$persona list` and `$persona set debugcoach`",
-            "5. `$model list` to pick a model",
+            "2. `$usage` to see your current session limits",
+            "3. `$persona list` and `$persona set debugcoach`",
+            "4. `$model list` to pick a model",
           ].join("\n"),
-        );
-        return;
-      }
-
-      const normalizedQuestion = question.trim().toLowerCase();
-      if (
-        ["reset", "clear", "reset context", "clear context"].includes(
-          normalizedQuestion,
-        )
-      ) {
-        const didClear = clearUserContext(message.author.id);
-        await message.reply(
-          didClear
-            ? "Your AI conversation context has been cleared."
-            : "No AI conversation context was found to clear.",
         );
         return;
       }
@@ -158,11 +148,35 @@ export default {
         return;
       }
 
+      // Pre-call budget check: if the session is already exhausted, refuse
+      // without calling the model and without touching session state.
+      if (isOverBudget(message.author.id)) {
+        const resetsAt = sessionResetsAt(message.author.id);
+        await message.reply(buildLimitReachedMessage(resetsAt));
+        return;
+      }
+
+      // Touch the session so the sliding 1h clock advances even when the
+      // attachments fail to download. getOrCreateSession is idempotent.
+      getOrCreateSession(message.author.id);
+
+      let downloadedImages = [];
+      if (imageAttachments.length) {
+        downloadedImages = await downloadImages(imageAttachments);
+      }
+
+      const { imageRefs } = appendUserTurn(message.author.id, {
+        text: question || "Describe and analyze the attached image(s).",
+        images: downloadedImages,
+      });
+
       const conversation = await buildConversation(
         message,
-        question,
-        imageAttachments,
+        message.author.id,
+        downloadedImages,
+        imageRefs,
       );
+
       const { persona, prompt: personaPrompt } = getUserPersonaPrompt(
         message.author.id,
       );
@@ -170,7 +184,7 @@ export default {
 
       // Images require a multimodal model, so override the user's choice and
       // route through OpenRouter's vision-capable model instead.
-      const selectedModel = imageAttachments.length
+      const selectedModel = downloadedImages.length
         ? { id: VISION_MODEL_ID, provider: "openrouter" }
         : getUserModel(message.author.id) || {
             id: DEFAULT_MODEL_ID,
@@ -188,6 +202,18 @@ export default {
       const modelProvider =
         selectedModel.provider === "openrouter" ? openRouter : groq;
 
+      // Reading an image can take a while. Send an immediate placeholder so the
+      // user knows the bot is working, then edit it with the real answer below.
+      if (downloadedImages.length) {
+        loadingMessage = await message
+          .reply(
+            downloadedImages.length > 1
+              ? `Reading ${downloadedImages.length} images... this can take a few seconds.`
+              : "Reading image... this can take a few seconds.",
+          )
+          .catch(() => null);
+      }
+
       const result = await generateText({
         model: modelProvider(selectedModel.id),
         system: systemPrompt,
@@ -200,7 +226,7 @@ export default {
         tools: {
           search: searchTool,
           stock: stockTool,
-          resetContext: createResetContextTool(message.author.id),
+          getImage: createGetImageTool(message.author.id),
         },
       });
 
@@ -228,24 +254,36 @@ export default {
         messageParts.push(currentPart.trim());
       }
 
-      for (const part of messageParts) {
-        await message.channel.send({
-          content: part,
-          allowedMentions: { parse: [] },
-        });
+      for (const [index, part] of messageParts.entries()) {
+        // Reuse the "Reading image..." placeholder for the first chunk so it
+        // transforms into the answer in place instead of leaving a stale note.
+        if (index === 0 && loadingMessage) {
+          await loadingMessage.edit(part).catch(async () => {
+            await message.channel.send(part);
+          });
+        } else {
+          await message.channel.send(part);
+        }
+      }
+
+      // If the model returned nothing to display, clean up the placeholder.
+      if (!messageParts.length && loadingMessage) {
+        await loadingMessage
+          .edit("I could not generate a response.")
+          .catch(() => null);
       }
 
       // If the AI looked up a stock, render and attach a visual price card.
       await sendStockCards(message, result);
 
-      const usedResetContext = wasToolUsed(result, "resetContext");
-      if (!usedResetContext) {
-        updateUserContext(message.author.id, question, answer);
-      }
+      // Persist the assistant reply into the session and account tokens.
+      appendAssistantTurn(message.author.id, answer);
+
+      const totalTokens = Number(result?.totalUsage?.totalTokens) || 0;
+      recordTokens(message.author.id, totalTokens);
 
       // Track token usage for the `$stats` card. Best-effort: never block or
       // fail the response if persistence has an issue.
-      const totalTokens = Number(result?.totalUsage?.totalTokens) || 0;
       recordUsage(
         message.author.id,
         {
@@ -262,24 +300,82 @@ export default {
       console.log(err);
 
       const errorMessage = String(err?.message || err);
-      if (errorMessage.includes("EXA_API_KEY")) {
-        await message.reply(
-          "Search is not configured yet. Add EXA_API_KEY to your environment and restart the bot.",
-        );
-        return;
-      }
+      const replyText = errorMessage.includes("EXA_API_KEY")
+        ? "Search is not configured yet. Add EXA_API_KEY to your environment and restart the bot."
+        : "Something went wrong while generating a response.";
 
-      await message.reply("Something went wrong while generating a response.");
+      // Reuse the "Reading image..." placeholder for the error if it exists so
+      // the user isn't left staring at a loading message that never resolves.
+      if (loadingMessage) {
+        await loadingMessage.edit(replyText).catch(async () => {
+          await message.reply(replyText);
+        });
+      } else {
+        await message.reply(replyText);
+      }
     }
   },
 };
 
-async function buildConversation(message, question, imageAttachments = []) {
-  const conversation = [];
+function buildLimitReachedMessage(resetsAt) {
+  if (!resetsAt) {
+    return "Session limit reached (20,000 tokens). Your session will reset after 1 hour of inactivity.";
+  }
+  const minutes = Math.max(1, Math.ceil((resetsAt - Date.now()) / 60_000));
+  return `Session limit reached (20,000 tokens). Your session resets after 1 hour of inactivity — about ${minutes} minute${minutes === 1 ? "" : "s"} from now if you stop messaging.`;
+}
 
-  const existingMessages = getUserContext(message.author.id);
-  if (Array.isArray(existingMessages) && existingMessages.length) {
-    conversation.push(...existingMessages);
+async function downloadImages(attachments) {
+  const downloaded = [];
+  for (const att of attachments) {
+    try {
+      const res = await fetch(att.url);
+      if (!res.ok) continue;
+      const buffer = Buffer.from(await res.arrayBuffer());
+      const mime = att.contentType || guessMimeFromName(att.name) || "image/png";
+      downloaded.push({ bytes: buffer, mime });
+    } catch (err) {
+      console.error("Failed to download image attachment:", err);
+    }
+  }
+  return downloaded;
+}
+
+function guessMimeFromName(name) {
+  if (!name) return null;
+  const m = String(name).toLowerCase().match(/\.(png|jpe?g|gif|webp)$/);
+  if (!m) return null;
+  const ext = m[1] === "jpg" ? "jpeg" : m[1];
+  return `image/${ext}`;
+}
+
+// Build the AI SDK `messages` array from the user's session.
+//
+// History rendering rule (inline-current + placeholder-older):
+//   - The current turn (last user message in the session) sends its images
+//     inline as multimodal parts.
+//   - Every earlier user turn renders its `image_ref` parts as text
+//     placeholders like `[image #N — mime, Xmin ago]`. The model can pull
+//     them back via the getImage tool.
+//   - Discord reply-to-bot context is appended as a transient assistant
+//     message at the end of history (same as before) — not persisted.
+async function buildConversation(message, userId, currentImages, currentRefs) {
+  const session = getActiveSession(userId);
+  const conversation = [];
+  const now = Date.now();
+
+  const allMessages = session?.messages || [];
+  // The last entry is the just-appended current user turn; everything before
+  // it is "prior" history.
+  const priorMessages = allMessages.slice(0, -1);
+  const currentMessage = allMessages[allMessages.length - 1];
+
+  const imageMetaByIndex = new Map(
+    (session?.images || []).map((img) => [img.index, img]),
+  );
+
+  for (const msg of priorMessages) {
+    conversation.push(renderHistoryMessage(msg, imageMetaByIndex, now));
   }
 
   const replyContext = await getReplyContext(message);
@@ -287,30 +383,62 @@ async function buildConversation(message, question, imageAttachments = []) {
     conversation.push(replyContext);
   }
 
-  const promptText = `Answer the following question **only if it is a safe, appropriate question**.\n${
-    question || "Describe and analyze the attached image(s)."
-  }`;
-
-  if (imageAttachments.length) {
-    // Multimodal user turn: text prompt + image parts (AI SDK v6 format).
+  // Render the current turn with inline images.
+  const currentText = textFromParts(currentMessage?.parts);
+  if (currentImages.length) {
+    const promptText = `Answer the following only if it is a safe, appropriate question.\n${currentText}`;
     conversation.push({
       role: "user",
       content: [
         { type: "text", text: promptText },
-        ...imageAttachments.map((url) => ({
+        ...currentImages.map((img, i) => ({
           type: "image",
-          image: new URL(url),
+          image: img.bytes,
+          mediaType: img.mime || currentRefs[i]?.mime || "image/png",
         })),
       ],
     });
   } else {
     conversation.push({
       role: "user",
-      content: promptText,
+      content: `Answer the following only if it is a safe, appropriate question.\n${currentText}`,
     });
   }
 
   return conversation;
+}
+
+function textFromParts(parts) {
+  if (!Array.isArray(parts)) return "";
+  return parts
+    .filter((p) => p?.type === "text")
+    .map((p) => p.text)
+    .join(" ")
+    .trim();
+}
+
+// Older messages collapse to a single string. Image parts become placeholders
+// the model can resolve via getImage.
+function renderHistoryMessage(msg, imageMetaByIndex, now) {
+  if (!msg || !Array.isArray(msg.parts)) {
+    return { role: msg?.role || "user", content: "" };
+  }
+  const segments = [];
+  for (const part of msg.parts) {
+    if (part.type === "text") {
+      if (part.text) segments.push(part.text);
+    } else if (part.type === "image_ref") {
+      const meta = imageMetaByIndex.get(part.index);
+      const ageMin = meta
+        ? Math.max(0, Math.round((now - meta.uploadedAt) / 60_000))
+        : null;
+      const ageText = ageMin === null ? "earlier" : `${ageMin} min ago`;
+      segments.push(
+        `[image #${part.index} — ${part.mime || meta?.mime || "image"}, ${ageText}]`,
+      );
+    }
+  }
+  return { role: msg.role, content: segments.join(" ").trim() };
 }
 
 function getImageAttachments(message) {
@@ -324,7 +452,11 @@ function getImageAttachments(message) {
       return /\.(png|jpe?g|gif|webp)$/i.test(attachment.name || "");
     })
     .slice(0, MAX_IMAGE_ATTACHMENTS)
-    .map((attachment) => attachment.url);
+    .map((attachment) => ({
+      url: attachment.url,
+      contentType: attachment.contentType,
+      name: attachment.name,
+    }));
 }
 
 async function getReplyContext(message) {
@@ -344,10 +476,6 @@ async function getReplyContext(message) {
   } catch {
     return null;
   }
-}
-
-function updateUserContext(userId, question, answer) {
-  appendUserTurn(userId, question, answer);
 }
 
 function splitToChunks(text, maxLen) {
@@ -403,7 +531,7 @@ function getBestAnswer(result) {
 }
 
 function buildSystemPrompt(persona, personaPrompt) {
-  const sections = [BASE_SYSTEM_PROMPT, SERVER_INFO];
+  const sections = [BASE_SYSTEM_PROMPT];
 
   if (persona?.name) {
     sections.push(`Active persona: ${persona.name} (${persona.id})`);
@@ -465,19 +593,6 @@ async function sendStockCards(message, result) {
       console.error(`Failed to render stock card for ${symbol}:`, err);
     }
   }
-}
-
-function wasToolUsed(result, toolName) {
-  const aggregateToolResults = [
-    ...(Array.isArray(result?.toolResults) ? result.toolResults : []),
-    ...(Array.isArray(result?.steps)
-      ? result.steps.flatMap((step) => step?.toolResults || [])
-      : []),
-  ];
-
-  return aggregateToolResults.some(
-    (item) => item?.type === "tool-result" && item?.toolName === toolName,
-  );
 }
 
 function buildToolFallbackText(result) {

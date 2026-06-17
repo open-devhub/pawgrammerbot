@@ -3,7 +3,6 @@ import {
   EmbedBuilder,
   StringSelectMenuBuilder,
 } from "discord.js";
-import { clearUserContext } from "../../utils/chat-context.js";
 import {
   clearUserPersona,
   getUserPersona,
@@ -101,11 +100,10 @@ export default {
 
       if (["default", "reset", "clear"].includes(action)) {
         clearUserPersona(message.author.id);
-        clearUserContext(message.author.id);
 
         const fallbackPersona = getUserPersona(message.author.id);
         await message.reply(
-          `Persona reset to default: ${fallbackPersona?.name || "Teenager Kai"} (${fallbackPersona?.id || "teenager"}). AI context was cleared too.`,
+          `Persona reset to default: ${fallbackPersona?.name || "Teenager Kai"} (${fallbackPersona?.id || "teenager"}).`,
         );
         return;
       }
@@ -141,12 +139,9 @@ export default {
         return;
       }
 
-      clearUserContext(message.author.id);
-
       await message.reply(
         [
           `Switched to ${selected.name} (${selected.id}).`,
-          "AI context was cleared to avoid mixing styles.",
         ].join("\n"),
       );
     } catch (err) {

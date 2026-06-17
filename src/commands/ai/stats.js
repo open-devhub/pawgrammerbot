@@ -4,9 +4,9 @@ import { getUserStats } from "../../utils/user-stats.js";
 
 export default {
   name: "stats",
-  description: "Show your personal AI usage stats card",
-  aliases: ["mystats", "usage"],
-  callback: async (client, message, args) => {
+    description: "Show your personal AI usage stats card",
+  aliases: ["mystats"],
+  callback: async (client, message) => {
     try {
       if (message.author.bot) return;
 

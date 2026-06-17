@@ -3,7 +3,6 @@ import {
   EmbedBuilder,
   StringSelectMenuBuilder,
 } from "discord.js";
-import { clearUserContext } from "../../utils/chat-context.js";
 import {
   getUserModel,
   listAvailableModels,
@@ -85,8 +84,6 @@ export default async (client, interaction) => {
     });
     return;
   }
-
-  clearUserContext(interaction.user.id);
 
   const models = listAvailableModels();
   const activeModel = getUserModel(interaction.user.id);
