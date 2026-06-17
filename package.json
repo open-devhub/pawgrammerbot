@@ -1,7 +1,7 @@
 {
   "name": "rael",
-  "version": "1.1.0",
-  "description": "DevHub's documentation, references and news bot",
+  "version": "1.1.1",
+  "description": "AI-powered Discord bot built for natural conversation, multi-model flexibility, and useful utilities like vision, web search, live stock data, and usage tracking",
   "main": "src/index.js",
   "type": "module",
   "scripts": {

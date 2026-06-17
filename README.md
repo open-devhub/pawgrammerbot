@@ -1,3 +1,14 @@
+<br />
+<div align="center">
+
+  <img src="./src/assets/icon.png" alt="Quantum Theme" width="200" height="200" />
+
+  <p align="center" style="margin-top: 12px;">
+    <strong><small>CONVERSATION MEETS CAPABILITY</small></strong>
+  </p>
+
+</div>
+
 # Rael
 
 Rael is an AI-powered Discord bot built for natural conversation, multi-model flexibility, and useful utilities like vision, web search, live stock data, and usage tracking.

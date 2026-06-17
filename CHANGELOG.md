@@ -1,5 +1,11 @@
 # Change Log
 
+## `v1.1.1` - 17/06/2026
+
+### Changed
+
+- Refine bot system prompt for tone and accuracy
+
 ## `v1.1.0` - 17/06/2026
 
 ### Added
