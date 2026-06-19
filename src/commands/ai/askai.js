@@ -1,6 +1,7 @@
 import { generateText, stepCountIs } from "ai";
 import { AttachmentBuilder } from "discord.js";
 import "dotenv/config";
+import latexToUnicode from "latex-to-unicode";
 import { createGetImageTool } from "../../tools/get-image.js";
 import { searchTool } from "../../tools/get-search.js";
 import { fetchStock, stockTool } from "../../tools/get-stock.js";
@@ -499,6 +500,12 @@ function applyOutputGuardrails(answer) {
 
   if (!output) {
     return "I could not generate a response.";
+  }
+
+  try {
+    output = latexToUnicode(output);
+  } catch (error) {
+    console.error("LaTeX to Unicode conversion failed:", error);
   }
 
   return output;
