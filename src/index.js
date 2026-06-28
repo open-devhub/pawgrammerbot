@@ -9,6 +9,12 @@ export const client = new Client({
     IntentsBitField.Flags.GuildMessages,
     IntentsBitField.Flags.MessageContent,
   ],
+  allowedMentions: {
+    parse: [],
+    repliedUser: false,
+    roles: [],
+    users: [],
+  },
 });
 
 eventHandler(client);
