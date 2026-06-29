@@ -6,6 +6,7 @@ import { SYSTEM_PROMPT } from "../../prompts/base.ts";
 import { tools } from "../../tools/index.ts";
 import type { CommandCallbackOpts } from "../../types/command.ts";
 import { openRouter } from "../../utils/ai.ts";
+import { addToContext, getContext } from "../../utils/context.ts";
 import { pretty } from "../../utils/pretty.ts";
 import { canUseAI, formatTimeLeft, setUsage } from "../../utils/usage.ts";
 
@@ -53,28 +54,29 @@ export default {
       systemPrompt += `\n\nThe user is replying to this message (your message):\n"${ctx}"`;
     }
 
+    const history = getContext(userId);
+    addToContext(userId, "user", question);
+
+    const messages = [
+      ...history.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      })),
+      { role: "user" as const, content: question },
+    ];
+
     const result = await executeAiRequest(
       contentBlocks,
       systemPrompt,
       !!imageUrl,
+      messages,
     );
 
     if (result?.text) {
-      // const files = [];
-
-      // for (const r of result.toolResults ?? []) {
-      //   if (r.type === "tool-result" && r.toolName === "buildImage") {
-      //     files.push(
-      //       new AttachmentBuilder(Buffer.from(r.output.data), {
-      //         name: "card.png",
-      //       }),
-      //     );
-      //   }
-      // }
+      addToContext(userId, "assistant", result.text);
 
       await message.reply({
         content: pretty(result.text),
-        // files,
       });
       const tokensUsedByModel = result.usage?.totalTokens ?? 0;
       if (tokensUsedByModel > 0) {
@@ -129,6 +131,7 @@ async function executeAiRequest(
   contentBlocks: any[],
   systemPrompt: string,
   isVisionRequest: boolean,
+  messages?: any[],
 ) {
   let attempts = 0;
   let success = false;
@@ -156,7 +159,7 @@ async function executeAiRequest(
       result = await generateText({
         model: provider(modelId),
         system: systemPrompt,
-        messages: [{ role: "user", content: contentBlocks }],
+        messages: messages || [{ role: "user", content: contentBlocks }],
         temperature: 0.9,
         maxOutputTokens: 1024,
         topP: 1,
