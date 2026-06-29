@@ -163,7 +163,7 @@ async function executeAiRequest(
         temperature: 0.9,
         maxOutputTokens: 1024,
         topP: 1,
-        stopWhen: stepCountIs(5),
+        stopWhen: stepCountIs(3),
         tools: tools,
         toolChoice: "auto",
       });
