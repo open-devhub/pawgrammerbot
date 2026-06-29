@@ -39,3 +39,7 @@ export function addToContext(
 
   CONTEXTS.set(userId, history);
 }
+
+export function resetContext(userId: string) {
+  CONTEXTS.delete(userId);
+}

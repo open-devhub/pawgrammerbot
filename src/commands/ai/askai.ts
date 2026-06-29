@@ -15,7 +15,7 @@ export let CURRENT_MODEL_INDEX = 0;
 export default {
   name: "askai",
   description: "Ask the AI model",
-  aliases: ["ai"],
+  aliases: ["ai", "ask"],
   async execute({ message, args, ctx }: CommandCallbackOpts) {
     if (message.author.bot) return;
 
