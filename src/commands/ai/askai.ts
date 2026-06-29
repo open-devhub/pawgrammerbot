@@ -8,6 +8,7 @@ import type { CommandCallbackOpts } from "../../types/command.ts";
 import { openRouter } from "../../utils/ai.ts";
 import { addToContext, getContext } from "../../utils/context.ts";
 import { pretty } from "../../utils/pretty.ts";
+import { sanitizeForPrompt } from "../../utils/sanitize.ts";
 import { canUseAI, formatTimeLeft, setUsage } from "../../utils/usage.ts";
 
 export let CURRENT_MODEL_INDEX = 0;
@@ -51,7 +52,7 @@ export default {
       `\n- Current Channel ID: "${message.channelId}"\n- Current Message ID: "${message.id}"`;
 
     if (ctx) {
-      systemPrompt += `\n\nThe user is replying to this message (your message):\n"${ctx}"`;
+      systemPrompt += `\n\nThe user is replying to this message (your message):\n"${sanitizeForPrompt(ctx)}"`;
     }
 
     const history = getContext(userId);
