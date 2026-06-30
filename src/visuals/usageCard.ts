@@ -3,7 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const FONTS_DIR = path.join(__dirname, "..", "assets", "fonts");
+const FONTS_DIR = path.join(__dirname, "..", "..", "assets", "fonts");
 
 let fontsRegistered = false;
 function ensureFonts() {
