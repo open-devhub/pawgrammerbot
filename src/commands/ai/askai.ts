@@ -62,12 +62,20 @@ export default {
     const history = getContext(userId);
     addToContext(userId, "user", question);
 
+    let currentUserContent: any;
+
+    if (imageUrl) {
+      currentUserContent = contentBlocks;
+    } else {
+      currentUserContent = question;
+    }
+
     const messages = [
       ...history.map((msg) => ({
         role: msg.role,
         content: msg.content,
       })),
-      { role: "user" as const, content: question },
+      { role: "user" as const, content: currentUserContent },
     ];
 
     const result = await executeAiRequest(
@@ -172,6 +180,7 @@ async function executeAiRequest(
       const modelId = isVisionRequest
         ? VISION_MODEL_ID
         : (modelConfig.id as string);
+
       const provider = isVisionRequest
         ? groq
         : modelConfig.provider === "groq"
@@ -192,7 +201,7 @@ async function executeAiRequest(
 
       success = true;
 
-      // console.log({ provider, modelId });
+      // console.log({ modelId, provider });
     } catch (error) {
       console.error(
         `[FAIL] Model [${isVisionRequest ? "Vision Model" : modelConfig.name}] hit an exception or quota limit. Error:`,
